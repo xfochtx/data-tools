@@ -4,8 +4,8 @@ import time
 from datetime import datetime
 from osgeo import ogr
 from .base import ArchivoBase
-from .helpers import ensure_folder, reorder_sheets
-from .config_export_excel import export_with_template
+from .utils.helpers import ensure_folder, reorder_sheets
+from .utils.config_export_excel import export_with_template
 
 class Exportar(ArchivoBase):
   def pickle(self, objeto):

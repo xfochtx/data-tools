@@ -52,7 +52,6 @@ class Importar(ArchivoBase):
     number_pages = []
     information = []
 
-
     with pdfplumber.open(self.ruta_archivo) as pdf:
       pages = pdf.pages if n_pages == 'all' else [pdf.pages[p - 1] for p in n_pages]  # base 1
 
