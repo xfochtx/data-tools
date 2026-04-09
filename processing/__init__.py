@@ -1,7 +1,9 @@
-# procesar/__init__.py
+# processing/__init__.py
 
 from . import pdf
+from . import scr
 
 __all__ = [
-  "pdf"
+  "pdf",
+  "scr",
 ]
