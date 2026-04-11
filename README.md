@@ -11,16 +11,19 @@ Está estructurado en módulos orientados a objetos para mayor flexibilidad y ma
 
 ## Módulos
 
-### `data_io` — Importación y exportación
+### `dataport` — Importación y exportación
+
 - Importar y exportar datos en Excel, CSV, Pickle y formatos geoespaciales.
 - Personalización de formatos en exportación (fechas, alineación, anchos de columna).
 - Uso de plantillas Excel para exportación avanzada.
 
-### `data_processing` — Procesamiento de PDFs
+### `processing` — Procesamiento de PDFs y de coordenadas espaciales
+
 - `reestructurar_pdf`: Convierte páginas específicas de un PDF a imagen o las deja editables.
 - `convertir_pdf_a_imagenes`: Convierte páginas específicas a imágenes PNG.
 - `crear_pdf_de_imagenes`: Crea un PDF a partir de imágenes.
 - `unir_pdfs`: Combina múltiples PDFs en uno solo.
+- CoordinateProcessor: Clase para procesar coordenadas geoespaciales
 
 ## Instalación
 
@@ -52,7 +55,7 @@ pip install git+https://github.com/xFochtX/Data-Tools --upgrade
 ### Módulo `io`
 
 ```python
-from io import Importar, Exportar
+from dataport import Importar, Exportar
 
 # Importar datos desde Excel
 importador = Importar("datos", "archivo.xlsx")

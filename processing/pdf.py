@@ -2,6 +2,9 @@ from pdf2image import convert_from_path
 from PyPDF2 import PdfMerger, PdfReader, PdfWriter
 from fpdf import FPDF
 from pathlib import Path
+import fitz  # PyMuPDF
+from PIL import Image
+import io
 
 def convertir_pdf_a_imagenes(pdf_path, output_folder, paginas_a_convertir, dpi=300):
   """Convierte páginas específicas de un PDF en imágenes PNG."""
@@ -107,3 +110,95 @@ def reestructurar_pdf(pdf_entrada, output_folder, name_pdf_output, rangos_a_conv
 
   print(f"PDF reestructurado guardado en: {pdf_reestructurado}")
   return pdf_reestructurado
+
+def comprimir_pdf(input_pdf, output_pdf, max_width=1500, quality=75, grayscale=True):
+  """
+  Comprime un PDF reduciendo tamaño de imágenes de forma segura.
+
+  Args:
+      input_pdf (Path | str): Ruta al PDF de entrada.
+      output_pdf (Path | str): Ruta de salida.
+      max_width (int): Ancho máximo de imágenes (px). Mantiene aspecto.
+      quality (int): Calidad JPEG (1–100).
+      grayscale (bool): Convertir imágenes a escala de grises.
+
+  Returns:
+      Path: Ruta al PDF comprimido.
+  """
+  input_pdf = Path(input_pdf)
+  output_pdf = Path(output_pdf)
+  output_pdf.parent.mkdir(parents=True, exist_ok=True)
+
+  doc = fitz.open(str(input_pdf))
+
+  procesadas = set()
+
+  for page in doc:
+    for img in page.get_images(full=True):
+      xref = img[0]
+
+      # Evitar reprocesar la misma imagen
+      if xref in procesadas:
+        continue
+      procesadas.add(xref)
+
+      try:
+        pix = fitz.Pixmap(doc, xref)
+
+        # Convertir a RGB si es necesario
+        if pix.n >= 5:  # CMYK o alpha
+          pix = fitz.Pixmap(fitz.csRGB, pix)
+
+        img_bytes = pix.tobytes("png")
+        pil_img = Image.open(io.BytesIO(img_bytes))
+
+        # Escala de grises opcional
+        if grayscale and pil_img.mode != "L":
+          pil_img = pil_img.convert("L")
+
+        # Redimensionar si es muy grande
+        if pil_img.width > max_width:
+          ratio = max_width / pil_img.width
+          new_size = (
+            int(pil_img.width * ratio),
+            int(pil_img.height * ratio),
+          )
+          pil_img = pil_img.resize(new_size, Image.LANCZOS)
+
+        # Elegir formato inteligentemente
+        if pil_img.mode == "L" or pil_img.mode == "RGB":
+          buf = io.BytesIO()
+          pil_img.save(buf, format="JPEG", quality=quality, optimize=True)
+          new_bytes = buf.getvalue()
+        else:
+          buf = io.BytesIO()
+          pil_img.save(buf, format="PNG", optimize=True)
+          new_bytes = buf.getvalue()
+
+        # ✅ Reemplazo seguro del stream
+        doc.update_stream(xref, new_bytes)
+
+      except Exception as e:
+        print(f"  Warning: No se pudo comprimir imagen {xref}: {e}")
+
+  # Guardado optimizado
+  doc.save(
+    str(output_pdf),
+    garbage=4,       # limpia objetos no usados
+    deflate=True,    # comprime streams
+  )
+  doc.close()
+
+  # Métricas
+  tamano_original = input_pdf.stat().st_size / (1024 * 1024)
+  tamano_comprimido = output_pdf.stat().st_size / (1024 * 1024)
+
+  reduccion = (
+    (1 - tamano_comprimido / tamano_original) * 100
+    if tamano_original > 0 else 0
+  )
+
+  print(f"PDF comprimido: {tamano_original:.2f} MB → {tamano_comprimido:.2f} MB ({reduccion:.1f}% reducción)")
+  print(f"Guardado en: {output_pdf}")
+
+  return output_pdf
