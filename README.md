@@ -30,7 +30,7 @@ Está estructurado en módulos orientados a objetos para mayor flexibilidad y ma
 ### Instalación local desde el repositorio
 
 ```bash
-pip install -e .
+pip install .
 ```
 
 ### Instalación desde GitHub
