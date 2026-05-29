@@ -45,6 +45,12 @@ def export_with_template(
   # Assume one table per sheet
   table = ws.tables[list(ws.tables.keys())[0]]
 
+  # Capture number formats from the template data row (row 2) BEFORE clearing
+  template_formats = [
+    ws.cell(row=2, column=col).number_format
+    for col in range(1, ws.max_column + 1)
+  ]
+
   # Clear existing data (keep row 1 header)
   if ws.max_row > 1:
     ws.delete_rows(2, ws.max_row)
@@ -59,20 +65,20 @@ def export_with_template(
   last_col = get_column_letter(ws.max_column)
   table.ref = f"A1:{last_col}{last_row}"
 
-  # Copy number formats from the template row
-  _copy_number_formats(ws, template_row=2, start_row=2, end_row=last_row)
+  # Apply captured formats to all new data rows
+  _apply_formats(ws, template_formats, start_row=2, end_row=last_row)
 
   ws.title = sheet_name
   wb.save(file_path)
 
 
-def _copy_number_formats(ws, template_row: int, start_row: int, end_row: int):
-  """Copy number_format from *template_row* to all data rows."""
-  formats = [
-    ws.cell(row=template_row, column=col).number_format
-    for col in range(1, ws.max_column + 1)
-  ]
+def _apply_formats(ws, formats: list[str], start_row: int, end_row: int):
+  """Apply pre-captured number *formats* to all data rows.
+
+  *formats* is a list where the index corresponds to the column number
+  (1-based, e.g. formats[0] = column 1, formats[3] = column 4).
+  """
   for row in range(start_row, end_row + 1):
     for col, fmt in enumerate(formats, start=1):
-      if fmt:
+      if fmt and fmt != "General":
         ws.cell(row=row, column=col).number_format = fmt
