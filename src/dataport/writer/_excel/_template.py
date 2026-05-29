@@ -56,6 +56,7 @@ def export_with_template(
     ws.delete_rows(2, ws.max_row)
 
   # Write data (DataFrame → list of lists → ws.append)
+  df = df.where(df.notna(), None)
   data = df.values.tolist()
   for row in data:
     ws.append(row)

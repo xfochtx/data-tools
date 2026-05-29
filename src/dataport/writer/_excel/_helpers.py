@@ -14,7 +14,11 @@ def write_df_to_sheet(ws, df: pd.DataFrame, index: bool = False):
   """Write a DataFrame into an openpyxl worksheet (header + data rows).
 
   Uses ws.append() with df.values.tolist() for speed.
+
+  Note: converts pd.NA/NaT to None for openpyxl compatibility
+  across all pandas versions.
   """
+  df = df.where(df.notna(), None)
   if index:
     idx_name = df.index.name or ""
     ws.append([idx_name] + list(df.columns))
