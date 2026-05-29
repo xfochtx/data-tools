@@ -1,11 +1,15 @@
 """Data import and export utilities.
 
 Usage:
-from . import reader, writer
+    from dataport import reader, writer
 
-    df = reader.excel(Path("datos.xlsx"))
-    writer.excel(Path("salida.xlsx"), df)
+    df = reader.excel(Path("data.xlsx"))
+    writer.excel(Path("out.xlsx"), df)
+    writer.pickle(Path("data.pkl"), obj)
+    writer.shapefile(Path("layer.shp"), gdf)
+    writer.kml(Path("doc.kml"), gdf)
 """
-from dataport import reader, writer
+from . import reader
+from . import writer
 
 __all__ = ["reader", "writer"]
