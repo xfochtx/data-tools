@@ -2,8 +2,9 @@ from setuptools import setup, find_packages
 
 setup(
   name="data_tools",
-  version="3.2.0",
-  packages=find_packages(),
+  version="4.0.0",
+  packages=find_packages(where="src"),
+  package_dir={"": "src"},
   install_requires=[
     "pandas",
     "openpyxl",
